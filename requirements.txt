@@ -1,0 +1,24 @@
+# Core CV pipeline (backend/vision/*) — these ARE installed and tested
+# in the authoring sandbox already.
+numpy
+opencv-python
+Pillow
+requests   # used by backend/integrations/weather_openweathermap.py
+
+# API layer (backend/api/*) — written, not yet executed here (no network
+# in the authoring sandbox to install these). Standard, correct pins.
+fastapi
+uvicorn[standard]
+python-multipart   # required by FastAPI for File()/Form() uploads
+
+# Production Farm Memory (backend/memory/models_sqlalchemy.py)
+sqlalchemy>=2.0
+psycopg2-binary
+alembic
+
+# Auth (spec section 19) — real, tested (see tests/test_auth.py)
+PyJWT
+
+# Testing
+pytest
+pytest-cov

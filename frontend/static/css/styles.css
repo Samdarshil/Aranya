@@ -1,0 +1,571 @@
+/* ============================================================
+   Aranya AI — design system
+   Grounded in the actual subject: fields, soil, sky, harvest —
+   not a generic SaaS palette. System fonts only (no network
+   access to load web fonts from this build). Deliberately avoids
+   the common AI-generated-page defaults: no cream+terracotta,
+   no near-black+neon accent, no identical-grey-shadow card kit,
+   no ALL-CAPS eyebrow labels.
+   ============================================================ */
+
+:root {
+  /* -- Color --------------------------------------------------- */
+  --bg: #F6F7F1;               /* soft warm paper, not the flagged cream */
+  --bg-deep: #EEF1E7;
+  --surface: #FFFFFF;
+  --surface-soft: #EEF2E8;
+  --surface-sunken: #E7EBE0;
+  --ink: #1B2B1E;               /* warm forest-black, not pure black */
+  --ink-soft: #55655A;
+  --ink-faint: #8A968A;
+
+  --primary: #24402C;           /* deep forest — brand, crop actions */
+  --primary-bright: #4F7A57;    /* accessible mid-green for links/accents */
+  --primary-soft: #E3EBE1;
+  --primary-glow: #7FBF8F;
+
+  --soil: #8C5A34;              /* soil brown — soil/economics/livestock */
+  --soil-soft: #F3E8DB;
+
+  --sky: #3D6C8A;                /* overcast sky — weather/scheme */
+  --sky-soft: #E4EEF3;
+
+  --gold: #B8863B;               /* harvest gold — market pricing */
+  --gold-soft: #F6ECDA;
+
+  --alert: #A8391F;              /* clay red, used sparingly */
+  --alert-soft: #F8E7E1;
+
+  --border: #DDE3D5;
+  --border-soft: #E9EEE3;
+  --focus: #1D5E3A;
+
+  /* -- Type ------------------------------------------------------ */
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+
+  /* -- Layout ------------------------------------------------------ */
+  --max-width: 480px;           /* mobile app width */
+  --content-width: 720px;        /* readable column on tablet/desktop */
+  --sidebar-width: 248px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --touch: 48px;
+
+  /* -- Elevation (soft, warm-tinted — not generic rgba(0,0,0,.1)) --- */
+  --shadow-sm: 0 1px 2px rgba(27, 43, 30, 0.06), 0 1px 1px rgba(27, 43, 30, 0.04);
+  --shadow-md: 0 6px 16px rgba(27, 43, 30, 0.08), 0 2px 6px rgba(27, 43, 30, 0.05);
+  --shadow-lg: 0 16px 40px rgba(27, 43, 30, 0.14), 0 4px 12px rgba(27, 43, 30, 0.06);
+
+  /* -- Motion ------------------------------------------------------- */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 150ms;
+  --dur-base: 240ms;
+  --dur-slow: 400ms;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+::selection { background: var(--primary-glow); color: var(--ink); }
+
+/* ============================================================
+   Splash — the one deliberate moment of orchestrated motion.
+   Real and boot-tied: hidden the instant app.js's boot() finishes,
+   never a fixed fake delay pretending work is happening.
+   ============================================================ */
+#splash {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(60% 50% at 50% 40%, rgba(127, 191, 143, 0.35), transparent 70%),
+    var(--primary);
+  transition: opacity var(--dur-slow) var(--ease), visibility var(--dur-slow) var(--ease);
+}
+#splash.splash-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.splash-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.splash-ring {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: rgba(255, 255, 255, 0.9);
+  animation: splash-spin 900ms linear infinite;
+}
+@keyframes splash-spin { to { transform: rotate(360deg); } }
+.splash-word {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: #fff;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  animation: splash-fade 500ms var(--ease) 200ms forwards;
+}
+@keyframes splash-fade { to { opacity: 1; } }
+
+/* ============================================================
+   App shell — responsive: mobile is a single column with a
+   bottom nav; tablet/desktop gain a persistent sidebar using the
+   exact same [data-nav] mechanism, so no new routing logic.
+   ============================================================ */
+#app {
+  width: 100%;
+  max-width: var(--max-width);
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin: 0 0 0.5em 0;
+  line-height: 1.25;
+  color: var(--ink);
+}
+h1 { font-size: 1.7rem; }
+h2 { font-size: 1.3rem; }
+h3 { font-size: 1.05rem; }
+p { margin: 0 0 0.75em 0; }
+a { color: var(--primary-bright); }
+
+/* -- Top bar (mobile) -------------------------------------------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--primary);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topbar .brand {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.topbar .brand-mark {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary-glow);
+  margin-right: 8px;
+  box-shadow: 0 0 0 4px rgba(127, 191, 143, 0.25);
+}
+.topbar button.icon-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.4rem;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease);
+}
+.topbar button.icon-btn:hover { background: rgba(255, 255, 255, 0.12); }
+
+/* -- Sidebar (tablet/desktop only) ------------------------------- */
+.sidebar {
+  display: none;
+}
+
+/* -- Content area -------------------------------------------------- */
+.view {
+  flex: 1;
+  padding: 20px;
+  padding-bottom: 100px; /* clear the bottom nav on mobile */
+  animation: view-enter var(--dur-base) var(--ease);
+}
+.view[hidden] { display: none; }
+@keyframes view-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .view { animation: none; }
+}
+
+.view-header { margin-bottom: 20px; }
+.view-header p.subtitle { color: var(--ink-soft); font-size: 0.95rem; }
+
+/* -- Cards ---------------------------------------------------------
+   Deliberately NOT a single uniform card kit: alerts, action tiles,
+   and results each carry a different shape/color language so the
+   structure encodes what kind of content it is. */
+
+.alert-banner {
+  border-left: 4px solid var(--alert);
+  background: var(--alert-soft);
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
+}
+.alert-banner .alert-title { font-weight: 600; margin-bottom: 4px; }
+.alert-banner .alert-meta { font-size: 0.85rem; color: var(--ink-soft); }
+.alert-banner button { margin-top: 10px; }
+
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+.action-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 16px;
+  min-height: 104px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease),
+              border-color var(--dur-base) var(--ease);
+}
+.action-tile .tile-icon {
+  font-size: 1.4rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--surface-soft);
+}
+.action-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--border-soft); }
+.action-tile:active { transform: translateY(0); }
+.action-tile.tile-crop .tile-icon,
+.action-tile.tile-planning .tile-icon { background: var(--primary-soft); }
+.action-tile.tile-livestock .tile-icon,
+.action-tile.tile-soil .tile-icon,
+.action-tile.tile-economics .tile-icon { background: var(--soil-soft); }
+.action-tile.tile-weather .tile-icon,
+.action-tile.tile-scheme .tile-icon { background: var(--sky-soft); }
+.action-tile.tile-market .tile-icon { background: var(--gold-soft); }
+.action-tile.tile-crop { border-top: 3px solid var(--primary); }
+.action-tile.tile-livestock { border-top: 3px solid var(--soil); }
+.action-tile.tile-weather { border-top: 3px solid var(--sky); }
+.action-tile.tile-soil { border-top: 3px solid var(--soil); }
+.action-tile.tile-planning { border-top: 3px solid var(--primary); }
+.action-tile.tile-market { border-top: 3px solid var(--gold); }
+.action-tile.tile-economics { border-top: 3px solid var(--soil); }
+.action-tile.tile-scheme { border-top: 3px solid var(--sky); }
+.action-tile.tile-research { border-top: 3px solid var(--ink-faint); }
+.action-tile.tile-chat { border-top: 3px solid var(--ink-faint); }
+
+/* -- Forms ---------------------------------------------------------- */
+.field { margin-bottom: 16px; }
+.field label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.95rem; }
+.field .hint { font-size: 0.82rem; color: var(--ink-soft); margin-top: 4px; }
+input[type="text"], input[type="tel"], input[type="email"], input[type="number"], select {
+  width: 100%;
+  min-height: var(--touch);
+  padding: 10px 12px;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-body);
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+input:hover, select:hover { border-color: var(--ink-faint); }
+input:focus, select:focus, button:focus, textarea:focus {
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgba(29, 94, 58, 0.18);
+}
+input[type="file"] { width: 100%; padding: 10px 0; }
+textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: 10px 12px;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  resize: vertical;
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+
+.image-preview {
+  margin-top: 10px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  max-width: 220px;
+  display: none;
+}
+.image-preview.has-image { display: block; }
+.image-preview img { display: block; width: 100%; height: auto; }
+
+button.btn {
+  min-height: var(--touch);
+  width: 100%;
+  padding: 12px 18px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease),
+              background var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
+}
+button.btn-primary { background: var(--primary); color: white; box-shadow: var(--shadow-sm); }
+button.btn-primary:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+button.btn-primary:active { transform: translateY(0); }
+button.btn-secondary { background: var(--surface); color: var(--primary); border: 1px solid var(--primary); }
+button.btn-secondary:hover { background: var(--primary-soft); }
+button.btn-link { background: none; color: var(--primary-bright); text-decoration: underline; padding: 8px 0; width: auto; min-height: 0; }
+button.btn[disabled] { opacity: 0.55; cursor: default; transform: none; box-shadow: none; }
+
+/* -- Recommendation result panel ------------------------------------ */
+.rec-panel {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  animation: view-enter var(--dur-base) var(--ease);
+}
+.rec-panel.severity-info { border-left: 5px solid var(--primary); }
+.rec-panel.severity-low { border-left: 5px solid var(--primary-bright); }
+.rec-panel.severity-moderate { border-left: 5px solid var(--gold); }
+.rec-panel.severity-high, .rec-panel.severity-critical { border-left: 5px solid var(--alert); }
+
+.rec-panel .rec-problem { font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 12px; line-height: 1.35; }
+.rec-panel .rec-row { margin-bottom: 14px; }
+.rec-panel .rec-row .rec-label { font-size: 0.78rem; color: var(--ink-soft); margin-bottom: 3px; font-weight: 600; }
+.rec-panel .evidence-list { margin: 0; padding-left: 18px; }
+.rec-panel .evidence-list li { margin-bottom: 5px; font-size: 0.92rem; }
+.rec-panel .confidence-bar-track { background: var(--surface-sunken); border-radius: 4px; height: 8px; overflow: hidden; margin-top: 5px; }
+.rec-panel .confidence-bar-fill {
+  background: linear-gradient(90deg, var(--primary-bright), var(--primary));
+  height: 100%;
+  transition: width var(--dur-slow) var(--ease);
+}
+.escalation-notice { background: var(--alert-soft); border-radius: var(--radius-sm); padding: 12px 14px; margin-top: 14px; font-size: 0.9rem; line-height: 1.5; }
+.outcome-feedback { border-top: 1px solid var(--border-soft); padding-top: 14px; margin-top: 6px; }
+.outcome-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.outcome-buttons .btn-outcome {
+  flex: 1 1 auto;
+  min-height: 40px;
+  padding: 7px 10px;
+  font-size: 0.82rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.outcome-buttons .btn-outcome:hover { background: var(--surface-soft); border-color: var(--ink-faint); }
+.outcome-confirm { font-size: 0.85rem; color: var(--ink-soft); margin-top: 10px; }
+
+/* -- Chat ------------------------------------------------------------- */
+.chat-log { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.chat-bubble { padding: 12px 14px; border-radius: var(--radius-md); max-width: 85%; font-size: 0.95rem; line-height: 1.45; animation: bubble-in var(--dur-base) var(--ease); }
+@keyframes bubble-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.chat-bubble.from-farmer { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+.chat-bubble.from-aranya { background: var(--surface); border: 1px solid var(--border); align-self: flex-start; border-bottom-left-radius: 2px; box-shadow: var(--shadow-sm); }
+.chat-input-row { display: flex; gap: 8px; position: sticky; bottom: 76px; }
+.chat-input-row input { flex: 1; }
+.chat-input-row button { width: auto; min-width: 72px; }
+
+/* -- Bottom nav (mobile) ------------------------------------------------- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  max-width: var(--max-width);
+  display: flex;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 6px 0 10px 0;
+  box-shadow: 0 -4px 16px rgba(27, 43, 30, 0.06);
+}
+.bottom-nav button {
+  flex: 1;
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 0;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease);
+}
+.bottom-nav button.active { color: var(--primary); font-weight: 600; }
+.bottom-nav .nav-icon { font-size: 1.3rem; }
+
+/* -- Skeleton loaders ------------------------------------------------- */
+.skeleton {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--surface-soft) 25%, var(--surface-sunken) 37%, var(--surface-soft) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+@keyframes skeleton-shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; background: var(--surface-soft); }
+}
+
+/* -- Toasts ------------------------------------------------------------ */
+#toast-stack {
+  position: fixed;
+  left: 50%;
+  bottom: 88px;
+  transform: translateX(-50%);
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: calc(100% - 40px);
+  max-width: calc(var(--max-width) - 40px);
+  pointer-events: none;
+}
+.toast {
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  box-shadow: var(--shadow-lg);
+  animation: toast-in var(--dur-base) var(--ease);
+}
+.toast.toast-leaving { animation: toast-out var(--dur-base) var(--ease) forwards; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toast-out { to { opacity: 0; transform: translateY(8px); } }
+
+/* -- Misc --------------------------------------------------------------- */
+.empty-state { text-align: center; padding: 44px 20px; color: var(--ink-soft); }
+.empty-state .empty-icon { font-size: 2rem; margin-bottom: 10px; display: block; }
+.spinner-text { text-align: center; padding: 24px; color: var(--ink-soft); }
+.error-banner { background: var(--alert-soft); color: var(--alert); padding: 12px 14px; border-radius: var(--radius-sm); margin-bottom: 14px; font-size: 0.9rem; line-height: 1.5; }
+.back-link { display: inline-block; margin-bottom: 16px; font-size: 0.9rem; cursor: pointer; color: var(--primary-bright); }
+
+/* ============================================================
+   Responsive — tablet and desktop get a persistent sidebar
+   instead of the bottom nav, using the same [data-nav] elements
+   already wired up in app.js. Mobile layout/behavior unchanged.
+   ============================================================ */
+@media (min-width: 768px) {
+  body { align-items: flex-start; }
+
+  #app { max-width: none; width: 100%; flex-direction: row; min-height: 100vh; }
+
+  .sidebar[hidden] { display: none; }
+  .sidebar:not([hidden]) {
+    display: flex;
+    flex-direction: column;
+    width: var(--sidebar-width);
+    flex-shrink: 0;
+    background: var(--primary);
+    color: #fff;
+    padding: 24px 16px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .sidebar .brand { display: flex; align-items: center; font-family: var(--font-display); font-size: 1.35rem; padding: 0 8px 20px 8px; }
+  .sidebar .brand-mark {
+    display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+    background: var(--primary-glow); margin-right: 9px;
+    box-shadow: 0 0 0 4px rgba(127, 191, 143, 0.25);
+  }
+  .sidebar-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+  .sidebar-nav button {
+    display: flex; align-items: center; gap: 12px;
+    background: none; border: none; color: rgba(255, 255, 255, 0.75);
+    text-align: left; padding: 10px 12px; border-radius: var(--radius-sm);
+    font-family: var(--font-body); font-size: 0.92rem; cursor: pointer;
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  }
+  .sidebar-nav button .nav-icon { font-size: 1.05rem; width: 20px; text-align: center; }
+  .sidebar-nav button:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+  .sidebar-nav button.active { background: rgba(255, 255, 255, 0.14); color: #fff; font-weight: 600; }
+  .sidebar-foot { padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.15); }
+  .sidebar-foot button {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    background: none; border: none; color: rgba(255, 255, 255, 0.75);
+    padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer;
+    font-family: var(--font-body); font-size: 0.9rem;
+  }
+  .sidebar-foot button:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+
+  .topbar, .bottom-nav { display: none; }
+
+  .main-scroll { flex: 1; min-height: 100vh; overflow-x: hidden; }
+
+  .view { max-width: var(--content-width); margin: 0 auto; padding: 40px 32px; }
+
+  .action-grid { grid-template-columns: repeat(3, 1fr); }
+
+  #toast-stack { max-width: 360px; bottom: 32px; left: auto; right: 32px; transform: none; }
+
+  #view-login { max-width: 420px; margin: 0 auto; padding-top: 10vh; }
+}
+
+@media (min-width: 1024px) {
+  .action-grid { grid-template-columns: repeat(4, 1fr); }
+  .view { padding: 48px 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  .splash-ring { animation: none; border-top-color: rgba(255,255,255,0.9); }
+}
