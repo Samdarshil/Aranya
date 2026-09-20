@@ -13,7 +13,7 @@ const Api = (() => {
   const STORAGE_KEY = "aranya_session";
 
   function getBaseUrl() {
-    return localStorage.getItem("aranya_api_base") || "http://localhost:8000";
+    return localStorage.getItem("aranya_api_base") || "https://aranya-ai-backend-9209.onrender.com";
   }
 
   function setBaseUrl(url) {
