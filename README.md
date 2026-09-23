@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌾 Aranya AI
+# 🌾 Aranya 🌾
 
 **Intelligence for Every Farm.**
 
