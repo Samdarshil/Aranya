@@ -1,0 +1,41 @@
+version: "3.9"
+
+# STATUS: written but not run in the authoring sandbox (no network access
+# to pull base images or install packages there). Standard shape for a
+# FastAPI + Postgres dev stack — verify on a machine with network access
+# before relying on it.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: aranya
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: aranya
+    ports:
+      - "5432:5432"
+    volumes:
+      - aranya_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aranya"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://aranya:changeme@db:5432/aranya
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data
+
+volumes:
+  aranya_pgdata:

@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+data/aranya.db
+data/media/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/

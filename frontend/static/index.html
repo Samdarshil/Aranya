@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Aranya AI</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ============ SPLASH ============
+     One deliberate branded moment, hidden the instant boot() in
+     app.js finishes its real work — never a fixed fake delay. -->
+<div id="splash">
+  <div class="splash-mark">
+    <div class="splash-ring"></div>
+    <div class="splash-word">Aranya</div>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- ============ SIDEBAR (tablet/desktop) ============
+       Uses the same [data-nav] click-delegation already in
+       app.js — no new routing logic needed. Hidden on mobile,
+       where the existing bottom-nav + action-grid take over. -->
+  <nav class="sidebar" id="app-sidebar" hidden>
+    <div class="brand"><span class="brand-mark"></span>Aranya</div>
+    <div class="sidebar-nav">
+      <button data-nav="view-home"><span class="nav-icon">&#127968;</span>Home</button>
+      <button data-nav="view-crop-scan"><span class="nav-icon">&#127811;</span>Scan a crop</button>
+      <button data-nav="view-livestock-scan"><span class="nav-icon">&#128004;</span>Check an animal</button>
+      <button data-nav="view-weather"><span class="nav-icon">&#9925;</span>Weather risk</button>
+      <button data-nav="view-soil"><span class="nav-icon">&#127793;</span>Soil test</button>
+      <button data-nav="view-planning"><span class="nav-icon">&#128197;</span>When to plant</button>
+      <button data-nav="view-market"><span class="nav-icon">&#128176;</span>Market price</button>
+      <button data-nav="view-economics"><span class="nav-icon">&#128202;</span>Field profit</button>
+      <button data-nav="view-scheme"><span class="nav-icon">&#127974;</span>Govt schemes</button>
+      <button data-nav="view-research"><span class="nav-icon">&#128269;</span>What is this?</button>
+      <button data-nav="view-chat"><span class="nav-icon">&#128172;</span>Ask Aranya</button>
+      <button data-nav="view-alerts"><span class="nav-icon">&#128276;</span>Alerts</button>
+    </div>
+    <div class="sidebar-foot">
+      <button id="btn-logout-sidebar"><span class="nav-icon">&#9211;</span>Log out</button>
+    </div>
+  </nav>
+
+  <div class="main-scroll">
+
+  <!-- ============ LOGIN ============ -->
+  <section class="view" id="view-login">
+    <div style="padding-top: 48px; text-align: center;">
+      <div style="display:inline-flex; align-items:center; justify-content:center; width:56px; height:56px; border-radius:50%; background: var(--primary-soft); margin-bottom: 16px;">
+        <span style="font-size:1.6rem;">&#127807;</span>
+      </div>
+      <h1>Aranya</h1>
+      <p style="color: var(--ink-soft);">Your farm remembers. Your AI watches. You make the decision.</p>
+    </div>
+
+    <div id="login-error-slot"></div>
+
+    <div id="login-step-phone">
+      <div class="field">
+        <label for="login-phone">Phone number</label>
+        <input type="tel" id="login-phone" placeholder="+91 98765 43210" autocomplete="tel">
+      </div>
+      <div class="field">
+        <label for="login-email">Email (optional, for a backup way to receive your code)</label>
+        <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <button class="btn btn-primary" id="btn-request-otp">Send code</button>
+    </div>
+
+    <div id="login-step-otp" hidden>
+      <div class="field">
+        <label for="login-otp">Enter the 6-digit code</label>
+        <input type="text" id="login-otp" inputmode="numeric" maxlength="6" placeholder="123456">
+        <p class="hint" id="otp-debug-hint"></p>
+      </div>
+      <div class="field">
+        <label for="login-name">Your name (first time only)</label>
+        <input type="text" id="login-name" placeholder="e.g. Ramesh Kumar">
+      </div>
+      <button class="btn btn-primary" id="btn-verify-otp">Verify &amp; continue</button>
+      <button class="btn btn-link" id="btn-back-to-phone">Use a different number</button>
+    </div>
+
+    <details style="margin-top: 40px;">
+      <summary style="color: var(--ink-soft); font-size: 0.85rem; cursor: pointer;">Server settings</summary>
+      <div class="field" style="margin-top: 12px;">
+        <label for="api-base-input">Aranya server address</label>
+        <input type="text" id="api-base-input" placeholder="http://localhost:8000">
+        <p class="hint">Only change this if you're pointing at a different backend.</p>
+      </div>
+      <button class="btn btn-secondary" id="btn-save-api-base">Save address</button>
+    </details>
+  </section>
+
+  <!-- ============ HOME ============ -->
+  <section class="view" id="view-home" hidden>
+    <div class="topbar">
+      <div class="brand"><span class="brand-mark"></span>Aranya</div>
+      <button class="icon-btn" id="btn-logout" title="Log out" aria-label="Log out">&#9211;</button>
+    </div>
+    <div class="view-header" style="padding-top: 16px;">
+      <h2>Your farm</h2>
+      <p class="subtitle">Everything Aranya knows, in one place.</p>
+    </div>
+
+    <div id="home-farm-picker" class="field">
+      <label for="home-farm-id">Farm</label>
+      <input type="number" id="home-farm-id" placeholder="Farm ID" min="1">
+      <p class="hint">Enter the farm ID for this session (multi-farm switching is a future improvement).</p>
+    </div>
+
+    <div id="home-alerts-slot"></div>
+
+    <h3 style="margin-top: 24px;">What would you like to do?</h3>
+    <div class="action-grid">
+      <button class="action-tile tile-crop" data-nav="view-crop-scan">
+        <span class="tile-icon">&#127811;</span>
+        <span>Scan a crop</span>
+      </button>
+      <button class="action-tile tile-livestock" data-nav="view-livestock-scan">
+        <span class="tile-icon">&#128004;</span>
+        <span>Check an animal</span>
+      </button>
+      <button class="action-tile tile-weather" data-nav="view-weather">
+        <span class="tile-icon">&#9925;</span>
+        <span>Weather risk</span>
+      </button>
+      <button class="action-tile tile-soil" data-nav="view-soil">
+        <span class="tile-icon">&#127793;</span>
+        <span>Soil test</span>
+      </button>
+      <button class="action-tile tile-planning" data-nav="view-planning">
+        <span class="tile-icon">&#128197;</span>
+        <span>When to plant</span>
+      </button>
+      <button class="action-tile tile-market" data-nav="view-market">
+        <span class="tile-icon">&#128176;</span>
+        <span>Market price</span>
+      </button>
+      <button class="action-tile tile-economics" data-nav="view-economics">
+        <span class="tile-icon">&#128202;</span>
+        <span>Field profit</span>
+      </button>
+      <button class="action-tile tile-scheme" data-nav="view-scheme">
+        <span class="tile-icon">&#127974;</span>
+        <span>Govt schemes</span>
+      </button>
+      <button class="action-tile tile-research" data-nav="view-research">
+        <span class="tile-icon">&#128269;</span>
+        <span>What is this?</span>
+      </button>
+      <button class="action-tile tile-chat" data-nav="view-chat">
+        <span class="tile-icon">&#128172;</span>
+        <span>Ask Aranya</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ CROP SCAN ============ -->
+  <section class="view" id="view-crop-scan" hidden>
+    <span class="back-link" data-nav="view-home">&larr; Back</span>
+    <div class="view-header">
+      <h2>Scan a crop</h2>
+      <p class="subtitle">Take a clear, well-lit photo filling most of the frame with leaves.</p>
+    </div>
+    <div id="crop-scan-error-slot"></div>
+    <div class="field">
+      <label for="crop-field-ref">Field name</label>
+      <input type="text" id="crop-field-ref" placeholder="e.g. FIELD-01">
+    </div>
+    <div class="field">
+      <label for="crop-name">Crop</label>
+      <select id="crop-name">
+        <option>Tomato</option><option>Potato</option><option>Wheat</option>
+        <option>Rice</option><option>Maize/Corn</option><option>Cotton</option>
+        <option>Sugarcane</option><option>Chili</option><option>Grape</option>
+        <option>Other / Not sure</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="crop-photo">Photo</label>
+      <input type="file" id="crop-photo" accept="image/*" capture="environment">
+      <div class="image-preview" id="crop-photo-preview"><img alt="Selected crop photo preview"></div>
+    </div>
+    <button class="btn btn-primary" id="btn-submit-crop-scan">Analyze photo</button>
+    <div id="crop-scan-result-slot" style="margin-top: 20px;"></div>
+  </section>
+
+  <!-- ============ LIVESTOCK SCAN ============ -->
+  <section class="view" id="view-livestock-scan" hidden>
+    <span class="back-link" data-nav="view-home">&larr; Back</span>
+    <div class="view-header">
+      <h2>Check an animal</h2>
+      <p class="subtitle">A regular camera photo — this is a screening tool, not a thermal or veterinary device.</p>
+    </div>
+    <div id="livestock-scan-error-slot"></div>
+    <div class="field">
+      <label for="animal-ref">Animal ID / name</label>
+      <input type="text" id="animal-ref" placeholder="e.g. COW-001">
+    </div>
+    <div class="field">
+      <label for="animal-species">Species</label>
+      <select id="animal-species">
+        <option>Cow</option><option>Buffalo</option><option>Goat</option>
+        <option>Sheep</option><option>Poultry</option><option>Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="animal-photo">Photo</label>
+      <input type="file" id="animal-photo" accept="image/*" capture="environment">
+      <div class="image-preview" id="animal-photo-preview"><img alt="Selected animal photo preview"></div>
+    </div>
+    <button class="btn btn-primary" id="btn-submit-livestock-scan">Analyze photo</button>
+    <div id="livestock-scan-result-slot" style="margin-top: 20px;"></div>
+  </section>
+
+  <!-- ============ WEATHER ============ -->
+  <section class="view" id="view-weather" hidden>
+    <span class="back-link" data-nav="view-home">&larr; Back</span>
+    <div class="view-header"><h2>Weather risk</h2></div>
+    <div id="weather-error-slot"></div>
+    <div class="field">
+      <label for="weather-lat">Latitude</label>
+      <input type="number" id="weather-lat" step="any" placeholder="e.g. 19.07">
+    </div>
+    <div class="field">
+      <label for="weather-lng">Longitude</label>
+      <input type="number" id="weather-lng" step="any" placeholder="e.g. 72.87">
+    </div>
+    <button class="btn btn-secondary" id="btn-use-my-location">Use my current location</button>
+    <button class="btn btn-primary" id="btn-check-weather" style="margin-top: 10px;">Check weather</button>
+    <div id="weather-result-slot" style="margin-top: 20px;"></div>
+  </section>
+
+  <!-- ============ SOIL ============ -->
+  <section class="view" id="view-soil" hidden>
+    <span class="back-link" data-nav="view-home">&larr; Back</span>
+    <div class="view-header">
+      <h2>Soil test</h2>
+      <p class="subtitle">Enter results from a lab report if you have one, or your best estimate.</p>
+    </div>
+    <div id="soil-error-slot"></div>
+    <div class="field">
+      <label for="soil-field-ref">Field name</label>
+      <input type="text" id="soil-field-ref" placeholder="e.g. FIELD-01">
+    </div>
+    <div class="field">
+      <label for="soil-crop-name">Crop</label>
+      <select id="soil-crop-name">
+        <option>Tomato</option><option>Potato</option><option>Wheat</option>
+        <option>Rice</option><option>Maize/Corn</option><option>Cotton</option>
+        <option>Sugarcane</option><option>Chili</option><option>Grape</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="soil-ph">Soil pH</label>
+      <input type="number" id="soil-ph" step="0.1" placeholder="e.g. 6.5">
+    </div>
+    <div class="field">
+      <label for="soil-n">Nitrogen (ppm)</label>
+      <input type="number" id="soil-n" step="any" placeholder="optional">
+    </div>
+    <div class="field">
+      <label for="soil-p">Phosphorus (ppm)</label>
+      <input type="number" id="soil-p" step="any" placeholder="optional">
+    </div>
+    <div class="field">
+      <label for="soil-k">Potassium (ppm)</label>
+      <input type="number" id="soil-k" step="any" placeholder="optional">
+    </div>
+    <div class="field">
+      <label for="soil-source">Where is this data from?</label>
+      <select id="soil-source">
+        <option value="lab_report">Lab report</option>
+        <option value="farmer_reported" selected>My own estimate</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" id="btn-submit-soil">Get recommendation</button>
+    <div id="soil-result-slot" style="margin-top: 20px;"></div>
+  </section>
+
+  <!-- ============ PLANNING ============ -->
+  <section class="view" id="view-planning" hidden>
+    <span class="back-link" data-nav="view-home">&larr; Back</span>
+    <div class="view-header"><h2>When to plant</h2></div>
+    <div id="planning-error-slot"></div>
+    <div class="field">
+      <label for="planning-field-ref">Field name</label>
+      <input type="text" id="planning-field-ref" placeholder="e.g. FIELD-01">
+    </div>
+    <div class="field">
+      <label for="planning-crop-name">Crop</label>
+      <select id="planning-crop-name">
+        <option>Tomato</option><option>Potato</option><option>Wheat</option>
+        <option>Rice</option><option>Maize/Corn</option><option>Cotton</option>
+        <option>Sugarcane</option><option>Chili</option><option>Grape</option>
+      </select>
+    </div>
+    <p class="hint">Uses the same location as your last weather check, if you've done one.</p>
+    <button class="btn btn-primary" id="btn-submit-planning">Get recommendation</button>
+    <div id="planning-result-slot" style="margin-top: 20px;"></div>
+  </section>
+
+  <!-- ============ MARKET ============ -->
+  <section class="view" id="view-market" hidden>
+    <span class="back-link" data-nav="view-home">&larr; Back</span>
+    <div class="view-header"><h2>Market price</h2></div>
+    <div id="market-error-slot"></div>
+    <div class="field">
+      <label for="market-crop-name">Crop</label>
+      <select id="market-crop-name">
+        <option>Tomato</option><option>Potato</option><option>Wheat</option>
+        <option>Rice</option><option>Maize/Corn</option><option>Cotton</option>
+        <option>Sugarcane</option><option>Chili</option><option>Grape</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="market-name">Market / mandi name</label>
+      <input type="text" id="market-name" placeholder="e.g. Azadpur Mandi">
+    </div>
+    <button class="btn btn-primary" id="btn-check-market">Check price</button>
+    <div id="market-result-slot" style="margin-top: 20px;"></div>
+  </section>
+
+  <!-- ============ ECONOMICS ============ -->
+  <section class="view" id="view-economics" hidden>
+    <span class="back-link" data-nav="view-home">&larr; Back</span>
+    <div class="view-header"><h2>Field profit</h2></div>
+    <div id="economics-error-slot"></div>
+    <div class="field">
+      <label for="econ-field-ref">Field name</label>
+      <input type="text" id="econ-field-ref" placeholder="e.g. FIELD-01">
+    </div>
+    <div class="field">
+      <label for="econ-crop-name">Crop</label>
+      <select id="econ-crop-name">
+        <option>Tomato</option><option>Potato</option><option>Wheat</option>
+        <option>Rice</option><option>Maize/Corn</option><option>Cotton</option>
+        <option>Sugarcane</option><option>Chili</option><option>Grape</option>
+      </select>
+    </div>
+
+    <h3 style="margin-top: 20px;">Log an expense</h3>
+    <div class="field">
+      <label for="econ-expense-category">Category</label>
+      <select id="econ-expense-category">
+        <option value="seed">Seed</option><option value="fertilizer">Fertilizer</option>
+        <option value="pesticide">Pesticide</option><option value="labor">Labor</option>
+        <option value="irrigation">Irrigation</option><option value="other">Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="econ-expense-amount">Amount (&#8377;)</label>
+      <input type="number" id="econ-expense-amount" step="any" placeholder="e.g. 1500">
+    </div>
+    <button class="btn btn-secondary" id="btn-log-expense">Add expense</button>
+
+    <h3 style="margin-top: 20px;">Log a sale</h3>
+    <div class="field">
+      <label for="econ-sale-qty">Quantity sold (kg)</label>
+      <input type="number" id="econ-sale-qty" step="any" placeholder="e.g. 500">
+    </div>
+    <div class="field">
+      <label for="econ-sale-price">Price per kg (&#8377;)</label>
+      <input type="number" id="econ-sale-price" step="any" placeholder="e.g. 20">
+    </div>
+    <button class="btn btn-secondary" id="btn-log-sale">Add sale</button>
+
+    <button class="btn btn-primary" id="btn-view-economics" style="margin-top: 20px;">View profit/loss</button>
+    <div id="economics-result-slot" style="margin-top: 20px;"></div>
+
+    <h3 style="margin-top: 28px;">Replanted this field?</h3>
+    <p class="hint">Starts a fresh cycle so this season's costs/sales don't mix with the last one's.</p>
+    <button class="btn btn-secondary" id="btn-start-cycle">Start new crop cycle</button>
+  </section>
+
+  <!-- ============ SCHEMES ============ -->
+  <section class="view" id="view-scheme" hidden>
+    <span class="back-link" data-nav="view-home">&larr; Back</span>
+    <div class="view-header"><h2>Government schemes</h2></div>
+    <p class="hint">A reference list, not a live government feed — always confirm locally before applying.</p>
+    <div id="scheme-error-slot"></div>
+    <div class="field">
+      <label for="scheme-land-acres">Land size (acres)</label>
+      <input type="number" id="scheme-land-acres" step="any" placeholder="e.g. 3">
+    </div>
+    <div class="field">
+      <label for="scheme-category">Category (optional)</label>
+      <select id="scheme-category">
+        <option value="">Not specified</option>
+        <option value="general">General</option>
+        <option value="small">Small farmer</option>
+        <option value="marginal">Marginal farmer</option>
+        <option value="sc">SC</option>
+        <option value="st">ST</option>
+        <option value="woman">Woman farmer</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" id="btn-check-schemes">Check eligible schemes</button>
+    <div id="scheme-result-slot" style="margin-top: 20px;"></div>
+  </section>
+
+  <!-- ============ RESEARCH ============ -->
+  <section class="view" id="view-research" hidden>
+    <span class="back-link" data-nav="view-home">&larr; Back</span>
+    <div class="view-header">
+      <h2>What is this?</h2>
+      <p class="subtitle">Describe what you're seeing — this searches a small reference list, not a live database. A photo scan is stronger evidence if you have one.</p>
+    </div>
+    <div id="research-error-slot"></div>
+    <div class="field">
+      <label for="research-query">Describe the symptoms</label>
+      <textarea id="research-query" placeholder="e.g. white powdery coating on the leaves"></textarea>
+    </div>
+    <div class="field">
+      <label for="research-crop-name">Crop (optional)</label>
+      <select id="research-crop-name">
+        <option value="">Any crop</option>
+        <option>Tomato</option><option>Potato</option><option>Wheat</option>
+        <option>Rice</option><option>Maize/Corn</option><option>Cotton</option>
+        <option>Sugarcane</option><option>Chili</option><option>Grape</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" id="btn-submit-research">Search</button>
+    <div id="research-result-slot" style="margin-top: 20px;"></div>
+  </section>
+
+  <!-- ============ CHAT ============ -->
+  <section class="view" id="view-chat" hidden>
+    <span class="back-link" data-nav="view-home">&larr; Back</span>
+    <div class="view-header"><h2>Ask Aranya</h2></div>
+    <p class="hint" id="chat-llm-hint"></p>
+    <div class="chat-log" id="chat-log"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Ask about weather, a field, an animal...">
+      <button class="btn btn-primary" id="btn-send-chat">Send</button>
+    </div>
+  </section>
+
+  <!-- ============ ALERTS ============ -->
+  <section class="view" id="view-alerts" hidden>
+    <span class="back-link" data-nav="view-home">&larr; Back</span>
+    <div class="view-header"><h2>Alerts</h2></div>
+    <div id="alerts-full-list"></div>
+    <h3 style="margin-top: 28px;">Expert consultations</h3>
+    <p class="hint">Cases Aranya has flagged for an expert to confirm.</p>
+    <div id="consultations-list"></div>
+  </section>
+
+  </div><!-- /main-scroll -->
+
+  <nav class="bottom-nav" id="bottom-nav" hidden>
+    <button data-nav="view-home"><span class="nav-icon">&#127968;</span>Home</button>
+    <button data-nav="view-alerts"><span class="nav-icon">&#128276;</span>Alerts</button>
+    <button data-nav="view-chat"><span class="nav-icon">&#128172;</span>Ask Aranya</button>
+  </nav>
+
+</div><!-- /app -->
+
+<div id="toast-stack" aria-live="polite"></div>
+
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
